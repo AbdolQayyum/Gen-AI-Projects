@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for the AI Knowledge and Support Assistant"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic-settings>=2.7.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
+    "langchain-google-genai>=4.4,<5.0",
+    "langchain-openai>=1.1,<2.0",
+    "python-multipart>=0.0.20",
+    "langchain-postgres>=0.0.14,<0.1",
+    "langchain-text-splitters>=0.3,<2.0",
+    "psycopg[binary]>=3.2,<4.0",
+    "pypdf>=5.0,<7.0",
+    "langgraph>=1.0,<2.0",
+    "langsmith>=0.3,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.27.0",
+    "pytest>=8.0.0",
+]
+
+# Without this, setuptools flat-layout auto-discovery sees both `app` and
+# `tests` as top-level packages and refuses to build.
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

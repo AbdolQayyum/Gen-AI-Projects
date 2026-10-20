@@ -1,0 +1,26 @@
+# Local secrets (keep example templates checked in)
+.env
+.env.*
+!.env.example
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/*.egg-info/
+backend/*.db
+backend/uploads/
+
+# Next.js / Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/*.tsbuildinfo
+
+# macOS
+.DS_Store
