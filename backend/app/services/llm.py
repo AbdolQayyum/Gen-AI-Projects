@@ -10,14 +10,17 @@ def generation_provider() -> str:
 
 
 def generation_provider_label() -> str:
-    return "Groq" if generation_provider() == "groq" else "Gemini"
+    provider = generation_provider()
+    return {"groq": "Groq", "gemini": "Gemini"}.get(provider, "AI provider")
 
 
 def is_generation_model_configured() -> bool:
     provider = generation_provider()
     if provider == "groq":
         return bool(settings.groq_api_key)
-    return bool(settings.google_api_key)
+    if provider == "gemini":
+        return bool(settings.google_api_key)
+    return False
 
 
 def generation_config_error() -> str:

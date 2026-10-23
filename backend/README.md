@@ -20,9 +20,11 @@ Open:
 
 ## AI Chat
 
-Set `LLM_PROVIDER` in `backend/.env` to either `gemini` or `groq`, then add the
-matching API key and restart the API. The default provider is Gemini. Use
-`GEMINI_MODEL` for Gemini or `GROQ_MODEL` for Groq. The chat endpoint is
+The default provider is Groq with `openai/gpt-oss-120b`. Create a Groq API key
+at [console.groq.com/keys](https://console.groq.com/keys), add it to
+`backend/.env` as `GROQ_API_KEY`, and restart the API. You can set
+`LLM_PROVIDER` to `gemini` or `groq`, then choose a model with `GEMINI_MODEL`
+or `GROQ_MODEL`. The chat endpoint is
 `POST /api/v1/chat/stream`; it accepts the conversation as `messages` and streams
 newline-delimited JSON token events. The browser holds the conversation for this
 phase; messages are not saved in the database yet.
@@ -32,8 +34,12 @@ Example Groq setup:
 ```env
 LLM_PROVIDER="groq"
 GROQ_API_KEY="your_groq_api_key"
-GROQ_MODEL="llama-3.3-70b-versatile"
+GROQ_MODEL="openai/gpt-oss-120b"
 ```
+
+Groq's free plan has per-model request and token limits; it does not provide
+unlimited usage. The published limits can change and the limits shown in your
+Groq console apply to your account.
 
 Document indexing and semantic search still use Gemini embeddings, so knowledge
 base/RAG features also need `GOOGLE_API_KEY`.
@@ -90,6 +96,26 @@ EMBEDDING_DIMENSIONS. Changing either after documents have been indexed requires
 re-indexing all documents because vector dimensions and embedding spaces must
 match.
 
+### Evaluate RAG quality
+
+Use the evaluation section at the bottom of `/knowledge` (the old
+`/evaluations` URL redirects there), or call `POST /api/v1/evaluations/run`
+with a question and expected answer. Evaluation is a quality-check step in the
+knowledge-base/RAG workflow. By default, the API retrieves context and generates
+an answer; the UI can instead submit the answer just returned by document Q&A so
+that exact response is scored. The configured generation provider scores answer
+relevance, context relevance, faithfulness, and hallucination risk (all 1–5),
+then the API stores the question, context, answer, reference, and scores in the
+`evaluation_runs` table. `GET /api/v1/evaluations` lists recent runs. Scores are
+estimates and should be reviewed by a person.
+
+LangSmith tracing is optional and off by default. Set `LANGSMITH_TRACING=true`,
+`LANGSMITH_API_KEY`, and optionally `LANGSMITH_PROJECT` in `backend/.env` to
+trace the generation and judge calls. Traced inputs can include questions,
+retrieved document excerpts, and answers, so enable it only if your LangSmith
+workspace is approved for that data. Evaluation requires a working generation
+provider API key and PostgreSQL/pgvector with indexed documents.
+
 ## Support Assistant and tool calling
 
 POST /api/v1/agents/support runs the LangGraph support workflow. It classifies
@@ -105,19 +131,3 @@ general/customer questions, or a document agent when document text is supplied
 for summarization or analysis. The response includes the selected agent and,
 for knowledge answers, source references. The UI is at /agents. Agent state is
 request-scoped and is not persisted.
-
-## RAG Evaluation
-
-Open `/evaluations` in the frontend or call `POST /api/v1/evaluations/run` with
-a question and expected answer. The API retrieves context, generates an answer,
-asks the configured generation provider to score answer relevance, context relevance, faithfulness,
-and hallucination risk (all 1–5), then stores the question, context, answer,
-reference, and scores in the `evaluation_runs` table. `GET /api/v1/evaluations`
-lists recent runs. Scores are estimates and should be reviewed by a person.
-
-LangSmith tracing is optional and off by default. Set `LANGSMITH_TRACING=true`,
-`LANGSMITH_API_KEY`, and optionally `LANGSMITH_PROJECT` in `backend/.env` to
-trace the generation and judge calls. Traced inputs can include questions,
-retrieved document excerpts, and answers, so enable it only if your LangSmith
-workspace is approved for that data. Evaluation requires a working generation
-provider API key and PostgreSQL/pgvector with indexed documents.

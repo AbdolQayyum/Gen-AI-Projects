@@ -105,10 +105,13 @@ async def evaluate_rag(request: EvaluationRequest, db: Session) -> EvaluationRes
     context_text = "\n\n---\n\n".join(contexts) or "(No relevant context was retrieved.)"
 
     with _trace_context():
-        answer_result = await (RAG_PROMPT | _model()).ainvoke(
-            {"question": request.question, "context": context_text}
-        )
-        answer = _to_text(answer_result.content)
+        if request.generated_answer is not None:
+            answer = request.generated_answer
+        else:
+            answer_result = await (RAG_PROMPT | _model()).ainvoke(
+                {"question": request.question, "context": context_text}
+            )
+            answer = _to_text(answer_result.content)
         judge = _model().with_structured_output(JudgeResult)
         score_result = await (JUDGE_PROMPT | judge).ainvoke(
             {

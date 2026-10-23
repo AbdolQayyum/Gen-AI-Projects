@@ -7,6 +7,7 @@ import { apiUrl } from "@/lib/api";
 
 type Message = { role: "user" | "assistant"; content: string };
 type StreamEvent = { type: "token" | "done" | "error"; content: string };
+const MAX_CHAT_MESSAGES = 40;
 
 const suggestions = [
   "Help me write a clear project update",
@@ -19,6 +20,7 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState("");
+  const [historyNotice, setHistoryNotice] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +32,17 @@ export default function ChatPage() {
     const content = text.trim();
     if (!content || isStreaming) return;
 
-    const nextMessages: Message[] = [...messages, { role: "user", content }];
+    let recentMessages = messages;
+    let removedOldTurns = false;
+    while (recentMessages.length + 1 > MAX_CHAT_MESSAGES) {
+      const assistantIndex = recentMessages.findIndex((message, index) => index > 0 && message.role === "assistant");
+      recentMessages = recentMessages.slice(assistantIndex === 1 ? 2 : 1);
+      removedOldTurns = true;
+    }
+    const nextMessages: Message[] = [...recentMessages, { role: "user", content }];
+    if (removedOldTurns) {
+      setHistoryNotice("Older turns were removed from this chat to stay within the 40-message limit.");
+    }
     setMessages([...nextMessages, { role: "assistant", content: "" }]);
     setInput("");
     setError("");
@@ -113,6 +125,7 @@ export default function ChatPage() {
     setMessages([]);
     setInput("");
     setError("");
+    setHistoryNotice("");
     textareaRef.current?.focus();
   }
 
@@ -164,7 +177,7 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600">
-            Gemini · {process.env.NEXT_PUBLIC_CHAT_MODEL ?? "gemini-3.8-flash"}
+            Model configured on backend
           </div>
           <button
             className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 md:hidden"
@@ -198,6 +211,7 @@ export default function ChatPage() {
           ) : (
             <div className="mx-auto w-full max-w-3xl flex-1 px-4 pb-8 pt-8 sm:px-8">
               <div className="space-y-7">
+                {historyNotice && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{historyNotice}</p>}
                 {messages.map((message, index) => (
                   <article key={`${message.role}-${index}`} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                     {message.role === "assistant" && <div className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-indigo-100 text-sm text-indigo-700">✳</div>}

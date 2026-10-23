@@ -65,11 +65,10 @@ Open `http://localhost:3000`. The API documentation is at
 ## Main pages
 
 - `/chat` — streaming AI chat
-- `/knowledge` — upload, index, search, and query documents
+- `/knowledge` — upload, index, search, query documents, and evaluate RAG quality
 - `/tools` — summarization, email, resume, and meeting note tools
 - `/assistant` — LangGraph support assistant with tool calling
 - `/agents` — RAG, support, and document agent orchestrator
-- `/evaluations` — run and review RAG quality evaluations
 
 See [backend/README.md](backend/README.md) and
 [frontend/README.md](frontend/README.md) for app-specific details.

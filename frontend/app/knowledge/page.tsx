@@ -1,5 +1,5 @@
 import Link from "next/link";
-import KnowledgeBase from "@/components/knowledge/knowledge-base";
+import KnowledgeWorkspace from "@/components/knowledge/knowledge-workspace";
 
 export default function KnowledgePage() {
   return (
@@ -9,11 +9,11 @@ export default function KnowledgePage() {
           <div>
             <Link href="/" className="text-sm text-indigo-700 hover:underline">← Workspace</Link>
             <h1 className="mt-4 text-2xl font-semibold tracking-tight">Knowledge Base</h1>
-            <p className="mt-1 text-sm text-slate-500">Upload, index, search, and ask questions about your documents.</p>
+            <p className="mt-1 text-sm text-slate-500">Upload, index, search, ask questions, and evaluate RAG answer quality.</p>
           </div>
           <Link href="/chat" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Open chat</Link>
         </header>
-        <KnowledgeBase />
+        <KnowledgeWorkspace />
       </div>
     </main>
   );

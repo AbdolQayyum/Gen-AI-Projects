@@ -9,6 +9,7 @@ from app.schemas.documents import RagSource
 class EvaluationRequest(BaseModel):
     question: str = Field(min_length=2, max_length=2_000)
     expected_answer: str = Field(min_length=2, max_length=8_000)
+    generated_answer: str | None = Field(default=None, min_length=2, max_length=12_000)
 
 
 class EvaluationScores(BaseModel):

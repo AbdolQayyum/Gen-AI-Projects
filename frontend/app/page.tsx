@@ -2,11 +2,10 @@ import Link from "next/link";
 
 const capabilities = [
   { icon: "✳", title: "AI Chat", description: "Ask questions and continue a conversation with your AI assistant.", status: "Ready", href: "/chat" },
-  { icon: "▤", title: "Knowledge Base", description: "Index documents, search by meaning, and ask questions with source references.", status: "Ready", href: "/knowledge" },
+  { icon: "▤", title: "Knowledge Base & RAG", description: "Index documents, search by meaning, ask with sources, and evaluate answer quality.", status: "Ready", href: "/knowledge" },
   { icon: "✧", title: "AI Tools", description: "Summarize text, draft emails, review resumes, and organize meeting notes.", status: "Ready", href: "/tools" },
   { icon: "◎", title: "AI Assistant", description: "Route support questions through a tool-enabled workflow with document sources.", status: "Ready", href: "/assistant" },
   { icon: "⎇", title: "Agent Orchestrator", description: "Route requests to RAG, support, or document analysis agents.", status: "Ready", href: "/agents" },
-  { icon: "▥", title: "Evaluations", description: "Score RAG answer relevance, context relevance, faithfulness, and hallucination risk.", status: "Ready", href: "/evaluations" },
 ];
 
 export default function DashboardPage() {
@@ -32,7 +31,6 @@ export default function DashboardPage() {
             <Link href="/tools" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 transition hover:bg-white"><span aria-hidden="true">✧</span> AI Tools</Link>
             <Link href="/assistant" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 transition hover:bg-white"><span aria-hidden="true">◎</span> Support Assistant</Link>
             <Link href="/agents" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 transition hover:bg-white"><span aria-hidden="true">⎇</span> Agent Orchestrator</Link>
-            <Link href="/evaluations" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 transition hover:bg-white"><span aria-hidden="true">▥</span> Evaluations</Link>
           </nav>
           <div className="mt-auto rounded-xl border border-slate-200/80 bg-white/80 p-3">
             <p className="text-xs font-semibold text-slate-700">Your AI workspace</p>
@@ -58,7 +56,7 @@ export default function DashboardPage() {
             <div className="max-w-2xl">
               <p className="text-sm font-semibold text-indigo-700">AI Knowledge &amp; Support Assistant</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">A clearer way to work with AI.</h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">Chat with Gemini, use practical AI writing tools, and search or ask questions across your indexed documents.</p>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">Chat with your configured AI model, use practical writing tools, and search, ask, and evaluate answers from indexed documents.</p>
               <Link href="/chat" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700">
                 Start a conversation <span aria-hidden="true">↗</span>
               </Link>
@@ -70,7 +68,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold">Workspace capabilities</h2>
               <p className="mt-1 text-sm text-slate-500">Your project, one useful feature at a time.</p>
             </div>
-            <span className="rounded-full bg-slate-200/70 px-3 py-1 text-xs font-medium text-slate-600">Phase 12 of 12</span>
+            <span className="rounded-full bg-slate-200/70 px-3 py-1 text-xs font-medium text-slate-600">RAG quality checks included</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {capabilities.map((capability) => {

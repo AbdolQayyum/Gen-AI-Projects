@@ -21,11 +21,14 @@ The home route is the dashboard. Open [http://localhost:3000/chat](http://localh
 
 The browser sends requests to the FastAPI backend at `http://localhost:8000/api/v1` by default. To use a different backend URL, set `NEXT_PUBLIC_API_BASE_URL` in `.env.local`.
 
-The backend needs `GOOGLE_API_KEY` set in `backend/.env`. Start FastAPI and Next.js in separate terminals. Conversation history is kept in the current browser session and is not saved yet.
+Set the selected chat provider key in `backend/.env` (Groq by default). Start FastAPI and Next.js in separate terminals. Conversation history is kept in the current browser session and is not saved yet. Document indexing and RAG also need `GOOGLE_API_KEY` for Gemini embeddings.
 
 The `/tools` page provides summarization, email drafting, resume review, and
 meeting-notes formatting. The `/knowledge` page supports document upload and
-deletion, indexing, semantic search, and question answering with source excerpts.
+deletion, indexing, semantic search, question answering with source excerpts,
+and RAG quality evaluation against a reference answer. The answer from document
+Q&A is prefilled so the exact response can be evaluated. Evaluation history is
+shown alongside the knowledge-base workflow; `/evaluations` redirects there.
 Start the repository's PostgreSQL + pgvector service with `docker compose up -d postgres`
 before indexing documents.
 
@@ -36,9 +39,8 @@ The `/agents` page demonstrates a small LangGraph orchestrator that selects a
 RAG, support, or document analysis agent for each request. Paste document text
 when asking the document agent to summarize or analyze it.
 
-The `/evaluations` page runs a RAG quality check using a question and reference
-answer, then shows and stores the retrieved context, generated answer, and
-judge scores. The backend can optionally send these traces to LangSmith when
+RAG evaluation stores the retrieved context, generated answer, reference answer,
+and judge scores. The backend can optionally send these traces to LangSmith when
 enabled in `backend/.env`.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

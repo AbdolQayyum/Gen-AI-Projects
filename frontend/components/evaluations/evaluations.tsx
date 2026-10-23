@@ -14,6 +14,8 @@ type Evaluation = {
   created_at: string;
 };
 
+type AnswerToEvaluate = { question: string; answer: string };
+
 const metrics: { key: keyof Evaluation["scores"]; label: string }[] = [
   { key: "answer_relevance", label: "Answer relevance" },
   { key: "context_relevance", label: "Context relevance" },
@@ -21,13 +23,24 @@ const metrics: { key: keyof Evaluation["scores"]; label: string }[] = [
   { key: "hallucination_risk", label: "Hallucination risk" },
 ];
 
-export default function Evaluations() {
+export default function Evaluations({
+  sourceAnswer,
+}: {
+  sourceAnswer: AnswerToEvaluate | null;
+}) {
   const [question, setQuestion] = useState("");
+  const [answerToEvaluate, setAnswerToEvaluate] = useState("");
   const [expectedAnswer, setExpectedAnswer] = useState("");
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!sourceAnswer) return;
+    setQuestion(sourceAnswer.question);
+    setAnswerToEvaluate(sourceAnswer.answer);
+  }, [sourceAnswer]);
 
   async function loadEvaluations() {
     const response = await fetch(apiUrl("evaluations?limit=20"));
@@ -56,7 +69,11 @@ export default function Evaluations() {
       const response = await fetch(apiUrl("evaluations/run"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, expected_answer: expectedAnswer }),
+        body: JSON.stringify({
+          question,
+          expected_answer: expectedAnswer,
+          ...(answerToEvaluate.trim() ? { generated_answer: answerToEvaluate } : {}),
+        }),
       });
       const data = await response.json() as Evaluation & { detail?: string };
       if (!response.ok) throw new Error(data.detail ?? "Evaluation failed.");
@@ -70,16 +87,20 @@ export default function Evaluations() {
     <section className="mt-8 space-y-6">
       <form onSubmit={evaluate} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <h2 className="font-semibold">Evaluate a RAG answer</h2>
-        <p className="mt-1 text-sm leading-5 text-slate-500">Provide a question and a reference answer. The backend retrieves context, generates an answer, and scores both against the reference.</p>
+        <p className="mt-1 text-sm leading-5 text-slate-500">Evaluate the answer from your latest document question, or leave the answer field empty to generate a fresh answer. The backend retrieves context and scores the answer against your reference.</p>
         <label className="mt-5 block text-sm font-medium text-slate-700">
           Question
           <textarea required minLength={2} maxLength={2000} rows={3} value={question} onChange={(event) => setQuestion(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-indigo-500" placeholder="What does the indexed policy say about annual leave?" />
         </label>
         <label className="mt-4 block text-sm font-medium text-slate-700">
+          Answer to evaluate <span className="font-normal text-slate-400">(optional; defaults to the latest RAG answer)</span>
+          <textarea maxLength={12000} rows={4} value={answerToEvaluate} onChange={(event) => setAnswerToEvaluate(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-indigo-500" placeholder="Leave blank to generate a fresh answer from the retrieved context." />
+        </label>
+        <label className="mt-4 block text-sm font-medium text-slate-700">
           Expected answer
           <textarea required minLength={2} maxLength={8000} rows={3} value={expectedAnswer} onChange={(event) => setExpectedAnswer(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-indigo-500" placeholder="The answer you consider correct, based on your source documents." />
         </label>
-        <button disabled={running || question.trim().length < 2 || expectedAnswer.trim().length < 2} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">{running ? "Retrieving and scoring…" : "Run evaluation"}</button>
+        <button disabled={running || question.trim().length < 2 || expectedAnswer.trim().length < 2} className="mt-4 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50">{running ? "Retrieving and scoring…" : answerToEvaluate.trim() ? "Evaluate this answer" : "Generate and evaluate answer"}</button>
       </form>
       {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
       <div>
@@ -96,7 +117,7 @@ export default function Evaluations() {
               <div className="flex flex-wrap gap-2">{metrics.map((metric) => <span key={metric.key} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">{metric.label}: {evaluation.scores[metric.key]}/5</span>)}</div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div><h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Generated answer</h4><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">{evaluation.generated_answer}</p></div>
+              <div><h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Answer evaluated</h4><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">{evaluation.generated_answer}</p></div>
               <div><h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Expected answer</h4><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">{evaluation.expected_answer}</p></div>
             </div>
             <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm leading-5 text-amber-950"><span className="font-semibold">Judge notes: </span>{evaluation.scores.reasoning}</p>
@@ -106,7 +127,7 @@ export default function Evaluations() {
           </li>
         ))}</ul>}
       </div>
-      <p className="text-xs leading-5 text-slate-400">Scores are LLM-judge estimates from 1–5, not ground truth. Verify important results manually. Each run makes separate Gemini calls for answering and judging.</p>
+      <p className="text-xs leading-5 text-slate-400">Scores are LLM-judge estimates from 1–5, not ground truth. Verify important results manually. Each run makes separate calls to the configured generation provider for answering and judging.</p>
     </section>
   );
 }

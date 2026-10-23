@@ -6,6 +6,7 @@ import { apiUrl } from "@/lib/api";
 type DocumentRecord = { id: number; filename: string; content_type: string; size_bytes: number; uploaded_at: string; indexed: boolean; chunk_count: number };
 type SearchResult = { document_id: number; filename: string; page_number: number | null; content: string; distance: number };
 type RagAnswer = { answer: string; sources: { filename: string; page_number: number | null; excerpt: string; distance: number }[] };
+type RAGAnswerForEvaluation = { question: string; answer: string };
 
 async function requestDocuments(): Promise<DocumentRecord[]> {
   const response = await fetch(apiUrl("documents"));
@@ -13,7 +14,11 @@ async function requestDocuments(): Promise<DocumentRecord[]> {
   return await response.json() as DocumentRecord[];
 }
 
-export default function KnowledgeBase() {
+export default function KnowledgeBase({
+  onAnswerGenerated,
+}: {
+  onAnswerGenerated: (answer: RAGAnswerForEvaluation) => void;
+}) {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -114,6 +119,7 @@ export default function KnowledgeBase() {
       const data = await response.json() as RagAnswer & { detail?: string };
       if (!response.ok) throw new Error(data.detail ?? "Knowledge chat failed.");
       setRagAnswer(data);
+      onAnswerGenerated({ question, answer: data.answer });
     } catch (ragRequestError) {
       setRagError(ragRequestError instanceof Error ? ragRequestError.message : "Could not answer from documents.");
     } finally { setAsking(false); }
@@ -179,6 +185,7 @@ export default function KnowledgeBase() {
           {ragAnswer && <div aria-live="polite" className="mt-4 border-t border-slate-100 pt-4">
             <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{ragAnswer.answer}</p>
             {ragAnswer.sources.length > 0 && <div className="mt-4"><h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Retrieved sources</h3><ul className="mt-2 space-y-2">{ragAnswer.sources.map((source, index) => <li key={source.filename + ":" + index} className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600"><p className="font-semibold">{source.filename}{source.page_number ? ", page " + source.page_number : ""}</p><p className="mt-1 line-clamp-4">{source.excerpt}</p></li>)}</ul></div>}
+            <a href="#rag-evaluation" className="mt-4 inline-flex text-sm font-medium text-indigo-700 hover:underline">Evaluate this answer ↓</a>
           </div>}
         </section>
       </div>

@@ -20,9 +20,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     google_api_key: str | None = None
     gemini_model: str = "gemini-3.8-flash"
-    llm_provider: str = "gemini"
+    llm_provider: str = "groq"
     groq_api_key: str | None = None
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
     langsmith_tracing: bool = False
     langsmith_api_key: str | None = None
     langsmith_project: str = "ai-knowledge-support-assistant"
